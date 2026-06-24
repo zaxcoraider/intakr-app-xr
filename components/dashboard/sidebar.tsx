@@ -1,0 +1,89 @@
+"use client"
+
+import { useState } from "react"
+import {
+  LayoutDashboard,
+  ClipboardList,
+  ShieldCheck,
+  CalendarDays,
+  Settings,
+  LifeBuoy,
+} from "lucide-react"
+import { cn } from "@/lib/utils"
+
+const navItems = [
+  { label: "Dashboard", icon: LayoutDashboard, active: true },
+  { label: "Patient Intake", icon: ClipboardList, active: false },
+  { label: "Insurance Verify", icon: ShieldCheck, active: false },
+  { label: "Appointments", icon: CalendarDays, active: false },
+  { label: "Settings", icon: Settings, active: false },
+]
+
+export function SidebarContent() {
+  const [active, setActive] = useState("Dashboard")
+
+  return (
+    <div className="flex h-full flex-col">
+      {/* Logo */}
+      <div className="flex h-16 items-center gap-2.5 border-b border-sidebar-border px-6">
+        <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
+          <span className="font-heading text-lg font-bold leading-none">I</span>
+        </div>
+        <span className="font-heading text-xl font-bold tracking-tight text-foreground">
+          Intakr
+        </span>
+      </div>
+
+      {/* Nav */}
+      <nav className="flex flex-1 flex-col gap-1 px-3 py-6" aria-label="Main navigation">
+        <p className="px-3 pb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          Menu
+        </p>
+        {navItems.map((item) => {
+          const Icon = item.icon
+          const isActive = active === item.label
+          return (
+            <button
+              key={item.label}
+              onClick={() => setActive(item.label)}
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                isActive
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                  : "text-sidebar-foreground hover:bg-secondary hover:text-foreground",
+              )}
+              aria-current={isActive ? "page" : undefined}
+            >
+              <Icon className="size-5 shrink-0" strokeWidth={2} />
+              {item.label}
+            </button>
+          )
+        })}
+      </nav>
+
+      {/* Footer / Support card */}
+      <div className="px-3 pb-6">
+        <div className="rounded-xl bg-accent p-4">
+          <div className="flex items-center gap-2 text-accent-foreground">
+            <LifeBuoy className="size-5" strokeWidth={2} />
+            <span className="text-sm font-semibold">Need help?</span>
+          </div>
+          <p className="mt-1.5 text-xs leading-relaxed text-accent-foreground/80">
+            Our support team is available 24/7 to assist your practice.
+          </p>
+          <button className="mt-3 w-full rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90">
+            Contact Support
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function Sidebar() {
+  return (
+    <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-sidebar-border bg-sidebar lg:block">
+      <SidebarContent />
+    </aside>
+  )
+}
