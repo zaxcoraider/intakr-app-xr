@@ -1,6 +1,6 @@
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Header } from "@/components/dashboard/header"
-import { MetricCards } from "@/components/dashboard/metric-cards"
+import { LiveMetrics } from "@/components/dashboard/live-metrics"
 import { ActivityFeed } from "@/components/dashboard/activity-feed"
 import { EfficiencyChart } from "@/components/dashboard/efficiency-chart"
 import { QuickActions } from "@/components/dashboard/quick-actions"
@@ -25,7 +25,7 @@ export default function Home() {
           </div>
 
           <div className="flex flex-col gap-6">
-            <MetricCards />
+            <LiveMetrics />
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
               <div className="lg:col-span-2">

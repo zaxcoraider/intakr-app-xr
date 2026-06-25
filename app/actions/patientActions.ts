@@ -1,38 +1,61 @@
 "use server";
 
-import { PutCommand } from "@aws-sdk/lib-dynamodb";
+import { PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { docClient } from "@/lib/aws";
 import { v4 as uuidv4 } from "uuid";
+import { revalidatePath } from "next/cache";
 
 export async function createPatient(formData: FormData) {
-  const name = formData.get("name") as string;
-  const email = formData.get("email") as string;
-  const phone = formData.get("phone") as string;
-  const insuranceProvider = formData.get("insuranceProvider") as string;
-  const policyNumber = formData.get("policyNumber") as string;
-
-  const patientId = uuidv4();
-  const createdAt = new Date().toISOString();
-
-  const params = {
-    TableName: "intakr-patients",
-    Item: {
-      patientId,
-      createdAt,
-      name,
-      email,
-      phone,
-      insuranceProvider,
-      policyNumber,
-      status: "Pending Verification",
-    },
+  const patient = {
+    id: uuidv4(),
+    name: formData.get("name") as string,
+    email: formData.get("email") as string,
+    phone: formData.get("phone") as string,
+    insuranceProvider: formData.get("insuranceProvider") as string,
+    policyNumber: formData.get("policyNumber") as string,
+    status: "Pending Verification",
+    createdAt: new Date().toISOString(),
   };
 
   try {
-    await docClient.send(new PutCommand(params));
-    return { success: true, message: "Patient added successfully!" };
+    await docClient.send(
+      new PutCommand({
+        TableName: "intakr-patients",
+        Item: patient,
+      }),
+    );
+
+    revalidatePath("/");
+    return { success: true, message: "Patient intake submitted successfully." };
   } catch (error) {
-    console.error("Error adding patient:", error);
-    return { success: false, message: "Failed to add patient." };
+    console.error("Error creating patient:", error);
+    return { success: false, message: "Failed to submit patient intake. Please try again." };
+  }
+}
+
+export async function getDashboardStats() {
+  const params = {
+    TableName: "intakr-patients",
+  };
+
+  try {
+    const data = await docClient.send(new ScanCommand(params));
+    const patients = data.Items || [];
+
+    const totalPatients = patients.length;
+    const pendingVerifications = patients.filter((p: any) => p.status === "Pending Verification").length;
+
+    // Mocking revenue for the demo (e.g., $150 per intake)
+    const revenue = totalPatients * 150;
+
+    return {
+      totalPatients,
+      pendingVerifications,
+      revenue,
+      avgTime: "4m 30s" // Static for now, but looks good
+    };
+  } catch (error) {
+    console.error("Error fetching stats:", error);
+    return null;
   }
 }
