@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { SettingsGeneral } from "@/components/settings/settings-general"
 
 const team = [
   { name: "Dr. Elena Cortez", role: "Admin", email: "elena@intakr.health", avatar: "/professional-woman-doctor-headshot.png" },
@@ -21,12 +22,18 @@ function initials(name: string) {
 
 export function SettingsTabs() {
   return (
-    <Tabs defaultValue="profile" className="w-full">
+    <Tabs defaultValue="general" className="w-full">
       <TabsList>
+        <TabsTrigger value="general">General</TabsTrigger>
         <TabsTrigger value="profile">Clinic Profile</TabsTrigger>
         <TabsTrigger value="team">Team Members</TabsTrigger>
         <TabsTrigger value="billing">Billing</TabsTrigger>
       </TabsList>
+
+      {/* General */}
+      <TabsContent value="general" className="mt-6">
+        <SettingsGeneral />
+      </TabsContent>
 
       {/* Clinic Profile */}
       <TabsContent value="profile" className="mt-6">
