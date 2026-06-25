@@ -1,6 +1,6 @@
 "use server";
 
-import { PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
+import { PutCommand, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { docClient } from "@/lib/aws";
 import { v4 as uuidv4 } from "uuid";
 import { revalidatePath } from "next/cache";
@@ -30,6 +30,37 @@ export async function createPatient(formData: FormData) {
   } catch (error) {
     console.error("Error creating patient:", error);
     return { success: false, message: "Failed to submit patient intake. Please try again." };
+  }
+}
+
+export async function verifyInsurance(patientId: string) {
+  try {
+    const result = await docClient.send(
+      new UpdateCommand({
+        TableName: "intakr-patients",
+        Key: { id: patientId },
+        UpdateExpression: "SET #status = :status, verifiedAt = :verifiedAt",
+        ExpressionAttributeNames: {
+          "#status": "status",
+        },
+        ExpressionAttributeValues: {
+          ":status": "Verified",
+          ":verifiedAt": new Date().toISOString(),
+        },
+        ReturnValues: "ALL_NEW",
+      }),
+    );
+
+    revalidatePath("/");
+    revalidatePath("/insurance-verify");
+    return {
+      success: true,
+      message: "Insurance verified successfully.",
+      patient: result.Attributes,
+    };
+  } catch (error) {
+    console.error("Error verifying insurance:", error);
+    return { success: false, message: "Failed to verify insurance. Please try again." };
   }
 }
 
