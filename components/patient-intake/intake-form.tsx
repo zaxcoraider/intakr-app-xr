@@ -1,48 +1,63 @@
-"use client";
+"use client"
 
-import { createPatient } from "@/app/actions/patientActions";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState } from "react";
+import { useState } from "react"
+import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react"
+import { createPatient } from "@/app/actions/patientActions"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { cn } from "@/lib/utils"
 
-export default function PatientIntakeForm() {
-  const [status, setStatus] = useState<string | null>(null);
+type IntakeFormProps = {
+  onSuccess?: () => void
+}
+
+export function IntakeForm({ onSuccess }: IntakeFormProps) {
+  const [status, setStatus] = useState<{ success: boolean; message: string } | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-sm border border-slate-200">
-      <h2 className="text-2xl font-bold text-slate-900 mb-6">New Patient Intake</h2>
+    <Card className="max-w-2xl p-6 md:p-8">
+      <form
+        action={async (formData) => {
+          setIsSubmitting(true)
+          setStatus(null)
+          const result = await createPatient(formData)
+          setStatus(result)
+          setIsSubmitting(false)
+          if (result.success) onSuccess?.()
+        }}
+        className="flex flex-col gap-5"
+      >
+        <div className="space-y-2">
+          <Label htmlFor="name">Full Name</Label>
+          <Input id="name" name="name" required placeholder="Jane Doe" />
+        </div>
 
-      <form action={async (formData) => {
-        const result = await createPatient(formData);
-        setStatus(result.message);
-        if (result.success) {
-          // Optional: Reset form or redirect
-        }
-      }} className="space-y-4">
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
-            <Input id="name" name="name" required placeholder="Jane Doe" />
-          </div>
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="email">Email Address</Label>
             <Input id="email" name="email" type="email" required placeholder="jane@example.com" />
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="phone">Phone Number</Label>
+            <Input id="phone" name="phone" required placeholder="(555) 123-4567" />
+          </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="phone">Phone Number</Label>
-          <Input id="phone" name="phone" required placeholder="(555) 123-4567" />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="insuranceProvider">Insurance Provider</Label>
             <Select name="insuranceProvider" required>
-              <SelectTrigger>
+              <SelectTrigger id="insuranceProvider">
                 <SelectValue placeholder="Select provider" />
               </SelectTrigger>
               <SelectContent>
@@ -59,16 +74,31 @@ export default function PatientIntakeForm() {
           </div>
         </div>
 
-        <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-6">
-          Submit Intake
+        <Button type="submit" disabled={isSubmitting} className="mt-2 w-full gap-2">
+          {isSubmitting && <Loader2 className="size-4 animate-spin" />}
+          {isSubmitting ? "Submitting…" : "Submit Intake"}
         </Button>
 
         {status && (
-          <p className={`text-center mt-4 ${status.includes("success") ? "text-green-600" : "text-red-600"}`}>
-            {status}
-          </p>
+          <div
+            className={cn(
+              "flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium",
+              status.success
+                ? "bg-accent text-accent-foreground"
+                : "bg-destructive/10 text-destructive",
+            )}
+          >
+            {status.success ? (
+              <CheckCircle2 className="size-4 shrink-0" />
+            ) : (
+              <AlertCircle className="size-4 shrink-0" />
+            )}
+            {status.message}
+          </div>
         )}
       </form>
-    </div>
-  );
+    </Card>
+  )
 }
+
+export default IntakeForm
