@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 import {
   LayoutDashboard,
   ClipboardList,
@@ -12,15 +13,15 @@ import {
 import { cn } from "@/lib/utils"
 
 const navItems = [
-  { label: "Dashboard", icon: LayoutDashboard, active: true },
-  { label: "Patient Intake", icon: ClipboardList, active: false },
-  { label: "Insurance Verify", icon: ShieldCheck, active: false },
-  { label: "Appointments", icon: CalendarDays, active: false },
-  { label: "Settings", icon: Settings, active: false },
+  { label: "Dashboard", icon: LayoutDashboard, href: "/" },
+  { label: "Patient Intake", icon: ClipboardList, href: "/patient-intake" },
+  { label: "Insurance Verify", icon: ShieldCheck, href: "/insurance-verify" },
+  { label: "Appointments", icon: CalendarDays, href: "/appointments" },
+  { label: "Settings", icon: Settings, href: "/settings" },
 ]
 
 export function SidebarContent() {
-  const [active, setActive] = useState("Dashboard")
+  const pathname = usePathname()
 
   return (
     <div className="flex h-full flex-col">
@@ -41,11 +42,11 @@ export function SidebarContent() {
         </p>
         {navItems.map((item) => {
           const Icon = item.icon
-          const isActive = active === item.label
+          const isActive = pathname === item.href
           return (
-            <button
+            <Link
               key={item.label}
-              onClick={() => setActive(item.label)}
+              href={item.href}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                 isActive
@@ -56,7 +57,7 @@ export function SidebarContent() {
             >
               <Icon className="size-5 shrink-0" strokeWidth={2} />
               {item.label}
-            </button>
+            </Link>
           )
         })}
       </nav>
