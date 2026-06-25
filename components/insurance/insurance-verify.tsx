@@ -1,143 +1,207 @@
 "use client"
 
-import { useState } from "react"
-import { Search, ShieldCheck, Layers, Loader2 } from "lucide-react"
+import { useRef, useState, useTransition } from "react"
+import useSWR from "swr"
+import {
+  ShieldCheck,
+  Layers,
+  Loader2,
+  FileCheck,
+  IdCard,
+  Hash,
+} from "lucide-react"
+import { runVerification, getVerifications, type Verification } from "@/app/actions/insuranceActions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 
-type Result = {
-  policy: string
-  status: string
-  provider: string
-  coverage: string
-  deductible: string
-  copay: string
-  network: string
+function formatTimestamp(iso: string) {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ""
+  return d.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  })
 }
 
 export function InsuranceVerify() {
-  const [policy, setPolicy] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState<Result | null>(null)
+  const { data: verifications = [], mutate, isLoading } = useSWR<Verification[]>(
+    "verifications",
+    () => getVerifications(),
+  )
 
-  function handleLookup(e: React.FormEvent) {
+  const [feedback, setFeedback] = useState<{ ok: boolean; msg: string } | null>(null)
+  const [isPending, startTransition] = useTransition()
+  const formRef = useRef<HTMLFormElement>(null)
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    if (!policy.trim()) return
-    setLoading(true)
-    setResult(null)
-    // Simulated verification lookup
-    setTimeout(() => {
-      setResult({
-        policy: policy.trim().toUpperCase(),
-        status: "Verified",
-        provider: "BlueCross",
-        coverage: "80%",
-        deductible: "$500",
-        copay: "$25",
-        network: "In-Network",
-      })
-      setLoading(false)
-    }, 900)
+    const formData = new FormData(e.currentTarget)
+
+    startTransition(async () => {
+      const result = await runVerification(formData)
+      if (result.success) {
+        setFeedback({ ok: true, msg: result.message })
+        formRef.current?.reset()
+        mutate()
+      } else {
+        setFeedback({ ok: false, msg: result.message })
+      }
+    })
   }
 
+  const sorted = [...verifications].sort((a, b) =>
+    b.createdAt.localeCompare(a.createdAt),
+  )
+
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-      {/* Lookup panel */}
-      <div className="lg:col-span-2">
-        <Card className="p-6">
-          <h2 className="font-heading text-lg font-semibold text-foreground">Look up Policy</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Enter a policy number to verify coverage in real time.
-          </p>
-          <form onSubmit={handleLookup} className="mt-4 flex flex-col gap-3">
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={policy}
-                onChange={(e) => setPolicy(e.target.value)}
-                placeholder="e.g. BC-4471-22"
-                className="pl-9"
-                aria-label="Policy number"
-              />
+    <div className="flex flex-col gap-6">
+      {/* Verify form */}
+      <Card className="p-0">
+        <div className="flex items-center gap-2 border-b border-border px-6 py-4">
+          <ShieldCheck className="size-5 text-primary" />
+          <h2 className="font-heading text-lg font-semibold text-foreground">
+            Verify Insurance
+          </h2>
+        </div>
+        <form ref={formRef} onSubmit={handleSubmit} className="p-6">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="patientId">Patient ID</Label>
+              <div className="relative">
+                <IdCard className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="patientId"
+                  name="patientId"
+                  placeholder="e.g. PT-10293"
+                  className="pl-9"
+                  required
+                />
+              </div>
             </div>
-            <Button type="submit" disabled={loading} className="w-full">
-              {loading ? (
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="policyNumber">Policy Number</Label>
+              <div className="relative">
+                <Hash className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="policyNumber"
+                  name="policyNumber"
+                  placeholder="e.g. BC-4471-22"
+                  className="pl-9"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-center gap-4">
+            <Button type="submit" disabled={isPending}>
+              {isPending ? (
                 <>
                   <Loader2 className="size-4 animate-spin" />
                   Verifying...
                 </>
               ) : (
                 <>
-                  <Search className="size-4" />
-                  Look up Policy
+                  <ShieldCheck className="size-4" />
+                  Verify Now
                 </>
               )}
             </Button>
-          </form>
+            <Button type="button" variant="outline" className="bg-transparent">
+              <Layers className="size-4" />
+              Run Batch Verification
+            </Button>
+            {feedback && (
+              <p
+                className={
+                  feedback.ok
+                    ? "text-sm font-medium text-primary"
+                    : "text-sm font-medium text-destructive"
+                }
+              >
+                {feedback.msg}
+              </p>
+            )}
+          </div>
+        </form>
+      </Card>
 
-          <div className="my-5 h-px bg-border" />
+      {/* Recent Verifications */}
+      <Card className="p-0">
+        <div className="flex items-center justify-between border-b border-border px-6 py-4">
+          <div className="flex items-center gap-2">
+            <FileCheck className="size-5 text-primary" />
+            <h2 className="font-heading text-lg font-semibold text-foreground">
+              Recent Verifications
+            </h2>
+          </div>
+          <span className="text-sm text-muted-foreground">{sorted.length} total</span>
+        </div>
 
-          <h3 className="text-sm font-semibold text-foreground">Bulk actions</h3>
-          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-            Verify all pending policies from today&apos;s intake queue at once.
-          </p>
-          <Button variant="outline" className="mt-3 w-full bg-transparent">
-            <Layers className="size-4" />
-            Run Batch Verification
-          </Button>
-        </Card>
-      </div>
-
-      {/* Results */}
-      <div className="lg:col-span-3">
-        {result ? (
-          <Card className="overflow-hidden p-0">
-            <div className="flex items-center justify-between border-b border-border bg-secondary/50 px-6 py-4">
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-xl bg-accent text-accent-foreground">
+        {isLoading ? (
+          <div className="flex items-center justify-center gap-2 px-6 py-16 text-sm text-muted-foreground">
+            <Loader2 className="size-4 animate-spin" />
+            Loading verifications...
+          </div>
+        ) : sorted.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-2 px-6 py-16 text-center">
+            <ShieldCheck className="size-8 text-muted-foreground/60" />
+            <p className="text-sm font-medium text-foreground">No verifications yet</p>
+            <p className="text-sm text-muted-foreground">
+              Run a verification using the form above to see results here.
+            </p>
+          </div>
+        ) : (
+          <ul className="divide-y divide-border">
+            {sorted.map((v) => (
+              <li key={v.verificationId} className="flex items-center gap-4 px-6 py-4">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground">
                   <ShieldCheck className="size-5" />
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-foreground">Policy {result.policy}</p>
-                  <p className="text-xs text-muted-foreground">{result.provider}</p>
+                <div className="grid min-w-0 flex-1 grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-3">
+                  <div className="min-w-0">
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                      Patient ID
+                    </p>
+                    <p className="truncate text-sm font-semibold text-foreground">
+                      {v.patientId}
+                    </p>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                      Policy
+                    </p>
+                    <p className="truncate text-sm font-semibold text-foreground">
+                      {v.policyNumber}
+                    </p>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                      Coverage
+                    </p>
+                    <p className="truncate text-sm font-semibold text-foreground">
+                      {v.coverageAmount}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <Badge className="border-transparent bg-accent text-accent-foreground">
-                {result.status}
-              </Badge>
-            </div>
-            <dl className="grid grid-cols-1 gap-px bg-border sm:grid-cols-2">
-              <DetailCell label="Status" value={result.status} />
-              <DetailCell label="Provider" value={result.provider} />
-              <DetailCell label="Coverage" value={result.coverage} />
-              <DetailCell label="Deductible" value={result.deductible} />
-              <DetailCell label="Co-pay" value={result.copay} />
-              <DetailCell label="Network" value={result.network} />
-            </dl>
-          </Card>
-        ) : (
-          <Card className="flex h-full min-h-[18rem] flex-col items-center justify-center p-6 text-center">
-            <div className="flex size-12 items-center justify-center rounded-xl bg-secondary text-muted-foreground">
-              <ShieldCheck className="size-6" />
-            </div>
-            <p className="mt-3 text-sm font-medium text-foreground">No policy verified yet</p>
-            <p className="mt-1 max-w-xs text-xs text-muted-foreground">
-              Enter a policy number on the left and run a lookup to see coverage details here.
-            </p>
-          </Card>
+                <div className="flex flex-col items-end gap-1">
+                  <Badge className="border-transparent bg-accent text-accent-foreground">
+                    {v.status}
+                  </Badge>
+                  <span className="text-xs text-muted-foreground">
+                    {formatTimestamp(v.createdAt)}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
         )}
-      </div>
-    </div>
-  )
-}
-
-function DetailCell({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="bg-card px-6 py-4">
-      <dt className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</dt>
-      <dd className="mt-1 text-base font-semibold text-foreground">{value}</dd>
+      </Card>
     </div>
   )
 }
