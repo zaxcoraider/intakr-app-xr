@@ -1,6 +1,6 @@
 "use client"
 
-import { Search, Bell, Menu, ChevronDown } from "lucide-react"
+import { Search, Menu, ChevronDown } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -10,6 +10,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { NotificationsDropdown } from "@/components/dashboard/notifications"
 import { SidebarContent } from "./sidebar"
 
 export function Header() {
@@ -45,13 +46,7 @@ export function Header() {
         <ThemeToggle />
 
         {/* Notifications */}
-        <button
-          className="relative flex size-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-          aria-label="View notifications"
-        >
-          <Bell className="size-5" strokeWidth={2} />
-          <span className="absolute right-2.5 top-2.5 size-2 rounded-full bg-primary ring-2 ring-card" />
-        </button>
+        <NotificationsDropdown />
 
         <div className="hidden h-8 w-px bg-border sm:block" />
 
