@@ -1,7 +1,6 @@
 "use client"
 
-import { Search, Menu } from "lucide-react"
-import { Input } from "@/components/ui/input"
+import { Menu } from "lucide-react"
 import {
   Sheet,
   SheetContent,
@@ -11,6 +10,7 @@ import {
 import { ThemeToggle } from "@/components/theme-toggle"
 import { NotificationsDropdown } from "@/components/dashboard/notifications"
 import { ProfileDropdown } from "@/components/dashboard/profile-dropdown"
+import { PatientSearch } from "@/components/dashboard/patient-search"
 import { SidebarContent } from "./sidebar"
 
 export function Header() {
@@ -30,16 +30,8 @@ export function Header() {
         </SheetContent>
       </Sheet>
 
-      {/* Search */}
-      <div className="relative w-full max-w-md">
-        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          type="search"
-          placeholder="Search patients..."
-          className="h-10 rounded-lg border-border bg-secondary/60 pl-9 text-sm focus-visible:bg-card"
-          aria-label="Search patients"
-        />
-      </div>
+      {/* Patient Search */}
+      <PatientSearch />
 
       <div className="ml-auto flex items-center gap-2 md:gap-3">
         {/* Theme Toggle */}
