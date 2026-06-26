@@ -2,6 +2,7 @@
 
 import { PutCommand, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { docClient } from "@/lib/aws";
+import { generateIntakeSummary } from "@/lib/bedrock";
 import { v4 as uuidv4 } from "uuid";
 import { revalidatePath } from "next/cache";
 
@@ -33,19 +34,34 @@ export async function createPatient(formData: FormData) {
   };
 
   try {
+    // Generate AI intake summary via AWS Bedrock (non-blocking on failure)
+    let aiSummary = ""
+    try {
+      aiSummary = await generateIntakeSummary({
+        name,
+        insuranceProvider: patient.insuranceProvider,
+        policyNumber: patient.policyNumber,
+        phone,
+        email,
+      })
+    } catch (bedrockError) {
+      console.warn("[v0] Bedrock summary skipped:", bedrockError)
+    }
+
     await docClient.send(
       new PutCommand({
         TableName: PATIENTS_TABLE,
-        Item: patient,
+        Item: { ...patient, aiSummary },
       }),
     );
 
     revalidatePath("/");
     revalidatePath("/patient-intake");
+    revalidatePath("/patients");
     return {
       success: true,
       message: `Patient ${name} intake submitted successfully.`,
-      patient,
+      patient: { ...patient, aiSummary },
     };
   } catch (error) {
     console.error("[v0] Error creating patient:", error);
