@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react"
+import { CheckCircle2, AlertCircle, Loader2, Sparkles } from "lucide-react"
 import { createPatient } from "@/app/actions/patientActions"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -22,6 +22,7 @@ type IntakeFormProps = {
 
 export function IntakeForm({ onSuccess }: IntakeFormProps) {
   const [status, setStatus] = useState<{ success: boolean; message: string } | null>(null)
+  const [aiSummary, setAiSummary] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   return (
@@ -30,10 +31,16 @@ export function IntakeForm({ onSuccess }: IntakeFormProps) {
         action={async (formData) => {
           setIsSubmitting(true)
           setStatus(null)
+          setAiSummary(null)
           const result = await createPatient(formData)
           setStatus(result)
           setIsSubmitting(false)
-          if (result.success) onSuccess?.()
+          if (result.success) {
+            if ((result as any).patient?.aiSummary) {
+              setAiSummary((result as any).patient.aiSummary)
+            }
+            onSuccess?.()
+          }
         }}
         className="flex flex-col gap-5"
       >
@@ -94,6 +101,19 @@ export function IntakeForm({ onSuccess }: IntakeFormProps) {
               <AlertCircle className="size-4 shrink-0" />
             )}
             {status.message}
+          </div>
+        )}
+
+        {aiSummary && (
+          <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
+            <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-primary">
+              <Sparkles className="size-4" />
+              AI Intake Summary
+              <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                Powered by AWS Bedrock
+              </span>
+            </div>
+            <p className="text-sm leading-relaxed text-foreground">{aiSummary}</p>
           </div>
         )}
       </form>

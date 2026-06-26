@@ -9,12 +9,14 @@ import {
   CalendarDays,
   Settings,
   LifeBuoy,
+  Users,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/" },
   { label: "Patient Intake", icon: ClipboardList, href: "/patient-intake" },
+  { label: "Patients", icon: Users, href: "/patients" },
   { label: "Insurance Verify", icon: ShieldCheck, href: "/insurance-verify" },
   { label: "Appointments", icon: CalendarDays, href: "/appointments" },
   { label: "Settings", icon: Settings, href: "/settings" },
