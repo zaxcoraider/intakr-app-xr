@@ -18,6 +18,17 @@ export async function createPatient(formData: FormData) {
   };
 
   try {
+    // Check if AWS credentials are configured
+    if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+      console.warn("[v0] AWS credentials not configured. Using mock mode.");
+      // Mock successful response for testing without AWS
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      return {
+        success: true,
+        message: `Patient ${patient.name} intake submitted successfully (mock mode).`,
+      };
+    }
+
     await docClient.send(
       new PutCommand({
         TableName: "intakr-patients",
@@ -28,8 +39,12 @@ export async function createPatient(formData: FormData) {
     revalidatePath("/");
     return { success: true, message: "Patient intake submitted successfully." };
   } catch (error) {
-    console.error("Error creating patient:", error);
-    return { success: false, message: "Failed to submit patient intake. Please try again." };
+    console.error("[v0] Error creating patient:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return {
+      success: false,
+      message: `Failed to submit patient intake. ${errorMessage.substring(0, 50)}...`,
+    };
   }
 }
 
