@@ -65,25 +65,39 @@ export async function verifyInsurance(patientId: string) {
 }
 
 export async function getDashboardStats() {
-  const params = {
-    TableName: "intakr-patients",
-  };
+  const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
 
   try {
-    const data = await docClient.send(new ScanCommand(params));
-    const patients = data.Items || [];
+    // Fetch all patients
+    const patientsData = await docClient.send(
+      new ScanCommand({
+        TableName: "intakr-patients",
+      }),
+    );
+    const patients = patientsData.Items || [];
 
-    const totalPatients = patients.length;
-    const pendingVerifications = patients.filter((p: any) => p.status === "Pending Verification").length;
+    // Filter for TODAY only
+    const todaysPatients = patients.filter((p: any) => p.createdAt.startsWith(today));
 
-    // Mocking revenue for the demo (e.g., $150 per intake)
-    const revenue = totalPatients * 150;
+    // Fetch verifications to check pending status
+    const verData = await docClient.send(
+      new ScanCommand({
+        TableName: "intakr-verifications",
+      }),
+    );
+    const verifications = verData.Items || [];
+    const pendingCount = verifications.filter((v: any) => v.status === "Pending").length;
+
+    // Calculate Real Metrics
+    const totalPatientsToday = todaysPatients.length;
+    const revenue = totalPatientsToday * 150; // $150 per intake
 
     return {
-      totalPatients,
-      pendingVerifications,
+      totalPatientsToday,
+      pendingVerifications: pendingCount,
       revenue,
-      avgTime: "4m 30s" // Static for now, but looks good
+      avgTime: "4m 30s", // Keep static for now, or calculate if you have timestamp data
+      recentActivity: patients.slice(-5).reverse(), // Get last 5 patients for the feed
     };
   } catch (error) {
     console.error("Error fetching stats:", error);
