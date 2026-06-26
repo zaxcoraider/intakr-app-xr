@@ -1,8 +1,7 @@
 "use client"
 
-import { Search, Menu, ChevronDown } from "lucide-react"
+import { Search, Menu } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   Sheet,
   SheetContent,
@@ -11,6 +10,7 @@ import {
 } from "@/components/ui/sheet"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { NotificationsDropdown } from "@/components/dashboard/notifications"
+import { ProfileDropdown } from "@/components/dashboard/profile-dropdown"
 import { SidebarContent } from "./sidebar"
 
 export function Header() {
@@ -50,20 +50,8 @@ export function Header() {
 
         <div className="hidden h-8 w-px bg-border sm:block" />
 
-        {/* Profile */}
-        <button className="flex items-center gap-2.5 rounded-lg p-1 pr-2 transition-colors hover:bg-secondary">
-          <Avatar className="size-9">
-            <AvatarImage src="/professional-woman-doctor-headshot.png" alt="" />
-            <AvatarFallback className="bg-primary/10 text-sm font-semibold text-primary">
-              DR
-            </AvatarFallback>
-          </Avatar>
-          <div className="hidden text-left leading-tight sm:block">
-            <p className="text-sm font-semibold text-foreground">Dr. Reyes</p>
-            <p className="text-xs text-muted-foreground">Clinic Admin</p>
-          </div>
-          <ChevronDown className="hidden size-4 text-muted-foreground sm:block" />
-        </button>
+        {/* Profile Dropdown */}
+        <ProfileDropdown />
       </div>
     </header>
   )

@@ -72,18 +72,16 @@ export function NotificationsDropdown() {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button
-          className="relative flex size-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-          aria-label="View notifications"
-        >
-          <Bell className="size-5" strokeWidth={2} />
-          {unreadCount > 0 && (
-            <span className="absolute right-2.5 top-2.5 flex size-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground ring-2 ring-card">
-              {unreadCount}
-            </span>
-          )}
-        </button>
+      <PopoverTrigger
+        className="relative flex size-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+        aria-label="View notifications"
+      >
+        <Bell className="size-5" strokeWidth={2} />
+        {unreadCount > 0 && (
+          <span className="absolute right-2.5 top-2.5 flex size-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground ring-2 ring-card">
+            {unreadCount}
+          </span>
+        )}
       </PopoverTrigger>
       <PopoverContent align="end" className="w-96 p-0">
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
