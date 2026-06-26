@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Bell, CheckCircle2, Clock, AlertCircle, X } from "lucide-react"
+import { Bell, CheckCircle2, Clock, AlertCircle, X, Check } from "lucide-react"
 import {
   Popover,
   PopoverContent,
@@ -18,7 +18,7 @@ interface Notification {
   read: boolean
 }
 
-const notifications: Notification[] = [
+const initialNotifications: Notification[] = [
   {
     id: "1",
     title: "Insurance Verified",
@@ -68,7 +68,18 @@ const getIcon = (type: string) => {
 
 export function NotificationsDropdown() {
   const [open, setOpen] = useState(false)
+  const [notifications, setNotifications] = useState(initialNotifications)
   const unreadCount = notifications.filter((n) => !n.read).length
+
+  const handleMarkAsRead = (notificationId: string) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n)),
+    )
+  }
+
+  const handleMarkAllAsRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+  }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -85,18 +96,29 @@ export function NotificationsDropdown() {
       </PopoverTrigger>
       <PopoverContent align="end" className="w-96 p-0">
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
-          <div>
+          <div className="flex-1">
             <h3 className="font-semibold text-foreground">Notifications</h3>
             {unreadCount > 0 && (
               <p className="text-xs text-muted-foreground">{unreadCount} new notifications</p>
             )}
           </div>
-          <button
-            onClick={() => setOpen(false)}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <X className="size-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            {unreadCount > 0 && (
+              <button
+                onClick={handleMarkAllAsRead}
+                className="rounded px-2 py-1 text-xs font-medium text-primary hover:bg-primary/10 transition-colors"
+                title="Mark all as read"
+              >
+                Mark all
+              </button>
+            )}
+            <button
+              onClick={() => setOpen(false)}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
         </div>
         <div className="flex max-h-96 flex-col overflow-y-auto">
           {notifications.length > 0 ? (
@@ -104,16 +126,25 @@ export function NotificationsDropdown() {
               <div
                 key={notification.id}
                 className={cn(
-                  "flex flex-col gap-2 border-b border-border px-4 py-3 hover:bg-secondary/30 cursor-pointer",
+                  "flex flex-col gap-2 border-b border-border px-4 py-3 group hover:bg-secondary/30",
                   !notification.read && "bg-secondary/15",
                 )}
               >
                 <div className="flex items-start gap-2">
                   {getIcon(notification.type)}
-                  <div className="flex-1 text-left">
+                  <div className="flex-1 text-left min-w-0">
                     <p className="text-sm font-medium text-foreground">{notification.title}</p>
                     <p className="text-xs text-muted-foreground">{notification.message}</p>
                   </div>
+                  {!notification.read && (
+                    <button
+                      onClick={() => handleMarkAsRead(notification.id)}
+                      className="ml-2 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity rounded p-1 text-muted-foreground hover:bg-secondary hover:text-foreground"
+                      title="Mark as read"
+                    >
+                      <Check className="size-4" />
+                    </button>
+                  )}
                 </div>
                 <span className="text-xs text-muted-foreground ml-6">{notification.timestamp}</span>
               </div>
