@@ -63,7 +63,13 @@ const statusStyles: Record<Status, string> = {
   Completed: "bg-primary/10 text-primary border-transparent",
 }
 
-export function ActivityFeed() {
+interface ActivityFeedProps {
+  recentActivity?: any[]
+}
+
+export function ActivityFeed({ recentActivity }: ActivityFeedProps) {
+  const displayActivities = recentActivity && recentActivity.length > 0 ? recentActivity : activities
+
   return (
     <Card className="border-border shadow-sm">
       <CardHeader>
@@ -71,25 +77,28 @@ export function ActivityFeed() {
         <CardDescription>Latest patient check-ins across your clinic</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-1">
-        {activities.map((activity) => (
-          <div
-            key={activity.name}
-            className="flex items-center gap-3 rounded-lg px-2 py-3 transition-colors hover:bg-muted/60"
-          >
-            <Avatar className="size-10 border border-border">
-              <AvatarImage src={activity.avatar || "/placeholder.svg"} alt={activity.name} />
-              <AvatarFallback>{activity.initials}</AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-foreground">{activity.name}</p>
-              <p className="truncate text-xs text-muted-foreground">{activity.detail}</p>
+        {displayActivities.map((activity: any) => {
+          const displayStatus = activity.status || "Pending"
+          return (
+            <div
+              key={activity.id || activity.name}
+              className="flex items-center gap-3 rounded-lg px-2 py-3 transition-colors hover:bg-muted/60"
+            >
+              <Avatar className="size-10 border border-border">
+                <AvatarImage src={activity.avatar || "/placeholder.svg"} alt={activity.name} />
+                <AvatarFallback>{(activity.name || "?").substring(0, 2).toUpperCase()}</AvatarFallback>
+              </Avatar>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-foreground">{activity.name || "Unknown"}</p>
+                <p className="truncate text-xs text-muted-foreground">{activity.detail || "Patient activity"}</p>
+              </div>
+              <div className="flex flex-col items-end gap-1">
+                <Badge className={cn("font-medium", statusStyles[displayStatus as Status])}>{displayStatus}</Badge>
+                <span className="text-xs text-muted-foreground">{activity.time || "Recently"}</span>
+              </div>
             </div>
-            <div className="flex flex-col items-end gap-1">
-              <Badge className={cn("font-medium", statusStyles[activity.status])}>{activity.status}</Badge>
-              <span className="text-xs text-muted-foreground">{activity.time}</span>
-            </div>
-          </div>
-        ))}
+          )
+        })}
       </CardContent>
     </Card>
   )

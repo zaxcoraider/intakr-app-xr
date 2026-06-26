@@ -1,11 +1,25 @@
+"use client"
+
+import { useEffect, useState, useTransition } from "react"
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Header } from "@/components/dashboard/header"
 import { LiveMetrics } from "@/components/dashboard/live-metrics"
 import { ActivityFeed } from "@/components/dashboard/activity-feed"
 import { EfficiencyChart } from "@/components/dashboard/efficiency-chart"
 import { QuickActions } from "@/components/dashboard/quick-actions"
+import { getDashboardStats } from "@/app/actions/patientActions"
 
 export default function Home() {
+  const [stats, setStats] = useState<any>(null)
+  const [isPending, startTransition] = useTransition()
+
+  useEffect(() => {
+    startTransition(async () => {
+      const data = await getDashboardStats()
+      if (data) setStats(data)
+    })
+  }, [])
+
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
@@ -29,7 +43,7 @@ export default function Home() {
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
               <div className="lg:col-span-2">
-                <ActivityFeed />
+                <ActivityFeed recentActivity={stats?.recentActivity} />
               </div>
               <div className="lg:col-span-3">
                 <EfficiencyChart />

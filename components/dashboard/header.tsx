@@ -9,6 +9,7 @@ import {
   SheetTrigger,
   SheetTitle,
 } from "@/components/ui/sheet"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { SidebarContent } from "./sidebar"
 
 export function Header() {
@@ -40,6 +41,9 @@ export function Header() {
       </div>
 
       <div className="ml-auto flex items-center gap-2 md:gap-3">
+        {/* Theme Toggle */}
+        <ThemeToggle />
+
         {/* Notifications */}
         <button
           className="relative flex size-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"

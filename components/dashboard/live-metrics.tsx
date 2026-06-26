@@ -8,10 +8,11 @@ import { cn } from "@/lib/utils"
 import { getDashboardStats } from "@/app/actions/patientActions"
 
 type Stats = {
-  totalPatients: number
+  totalPatientsToday: number
   pendingVerifications: number
   revenue: number
   avgTime: string
+  recentActivity?: any[]
 }
 
 export function LiveMetrics() {
@@ -34,7 +35,7 @@ export function LiveMetrics() {
   const cards = [
     {
       label: "Patients Today",
-      value: stats ? stats.totalPatients.toLocaleString() : "—",
+      value: stats ? stats.totalPatientsToday.toLocaleString() : "—",
       icon: Users,
       trend: "+12%",
       trendUp: true,
