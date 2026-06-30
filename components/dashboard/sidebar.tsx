@@ -33,9 +33,9 @@ export function SidebarContent() {
         <Image
           src="/logo.png"
           alt="Intakr"
-          width={120}
-          height={40}
-          className="h-8 w-auto object-contain"
+          width={180}
+          height={56}
+          className="h-12 w-auto object-contain"
           priority
         />
       </div>
