@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
@@ -28,13 +29,15 @@ export function SidebarContent() {
   return (
     <div className="flex h-full flex-col">
       {/* Logo */}
-      <div className="flex h-16 items-center gap-2.5 border-b border-sidebar-border px-6">
-        <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
-          <span className="font-heading text-lg font-bold leading-none">I</span>
-        </div>
-        <span className="font-heading text-xl font-bold tracking-tight text-foreground">
-          Intakr
-        </span>
+      <div className="flex h-16 items-center border-b border-sidebar-border px-6">
+        <Image
+          src="/logo.png"
+          alt="Intakr"
+          width={120}
+          height={40}
+          className="h-8 w-auto object-contain"
+          priority
+        />
       </div>
 
       {/* Nav */}
